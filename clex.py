@@ -6,6 +6,8 @@
 #  $Id: clex.py,v 1.2 2004/06/02 21:05:45 varmaa Exp $
 #  ---------------------------------------------------------------
 
+from __future__ import absolute_import
+from __future__ import print_function
 import lex
 import re
 
@@ -204,7 +206,7 @@ t_EQ_SHIFT_RIGHT = r'>>='
 
 def t_ID(t):
     r'[A-Za-z_][\w]*'
-    if reserved_words.has_key(t.value):
+    if t.value in reserved_words:
         t.type = reserved_words[t.value]
     return t
 
@@ -214,7 +216,7 @@ def t_FNUMBER(t):
 
 def t_malformed_fnumber(t):
     r'(0\d+)((\.\d+(e[+-]?\d+)?)|(e[+-]?\d+))'
-    print "Line %d. Malformed floating point number '%s'" % (t.lineno, t.value)
+    print("Line %d. Malformed floating point number '%s'" % (t.lineno, t.value))
 
 def t_INUMBER(t):
     r'0(?!\d)|([1-9]\d*)'
@@ -222,7 +224,7 @@ def t_INUMBER(t):
 
 def t_malformed_inumber(t):
     r'0\d+'
-    print "Line %d. Malformed integer '%s'" % (t.lineno, t.value)
+    print("Line %d. Malformed integer '%s'" % (t.lineno, t.value))
 
 def t_CHARACTER(t):
     r"'\w'"
@@ -233,7 +235,7 @@ def t_STRING(t):
     temp_str = t.value.replace(r'\\', '')
     m = re.search(r'\\[^n"]', temp_str)
     if m != None:
-        print "Line %d. Unsupported character escape %s in string literal." % (t.lineno, m.group(0))
+        print("Line %d. Unsupported character escape %s in string literal." % (t.lineno, m.group(0)))
         return
     return t
 
@@ -259,15 +261,15 @@ def t_COMMENT(t):
 #  ---------------------------------------------------------------
 
 def t_error(t):
-    print "Line %d." % (t.lineno,) + "",
+    print("Line %d." % (t.lineno,) + "", end=' ')
     if t.value[0] == '"':
-        print "Unterminated string literal."
+        print("Unterminated string literal.")
         if t.value.count('\n') > 0:
             t.skip(t.value.index('\n'))
     elif t.value[0:2] == '/*':
-        print "Unterminated comment."
+        print("Unterminated comment.")
     else:
-        print "Illegal character '%s'" % t.value[0]
+        print("Illegal character '%s'" % t.value[0])
         t.skip(1)
 
 #  ---------------------------------------------------------------
@@ -289,7 +291,7 @@ def run_lexer():
     while 1:
         token = lex.token()       # Get a token
         if not token: break        # No more tokens
-        print "(%s,'%s',%d)" % (token.type, token.value, token.lineno)
+        print("(%s,'%s',%d)" % (token.type, token.value, token.lineno))
 
 lex.lex()
 

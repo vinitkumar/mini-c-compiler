@@ -6,6 +6,7 @@
 #  $Id: cx86.py,v 1.3 2004/06/02 21:05:23 varmaa Exp $
 #  ---------------------------------------------------------------
 
+from __future__ import absolute_import
 import cparse
 from cvisitors import Visitor
 

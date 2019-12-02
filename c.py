@@ -11,6 +11,8 @@
 #  compiler proper.
 #  ---------------------------------------------------------------
 
+from __future__ import absolute_import
+from __future__ import print_function
 import yacc
 
 import cparse, cvisitors, cx86
@@ -60,7 +62,7 @@ class Compiler:
     def _print_stats(self):
         """Prints the total number of errors/warnings from compilation."""
         
-        print "%d errors, %d warnings." % (self.total_errors, self.total_warnings)
+        print("%d errors, %d warnings." % (self.total_errors, self.total_warnings))
 
     def compile(self, code, outfile, show_ast, show_comments):
         """Compiles the given code string to the given file object."""
@@ -69,21 +71,21 @@ class Compiler:
         try:
             self._do_compile(outfile, show_ast, show_comments)
         except cparse.ParseError:
-            print "Errors encountered, bailing."
+            print("Errors encountered, bailing.")
             return 1            
         except Compiler.CompileError:
             self._print_stats()
-            print "Errors encountered, bailing."
+            print("Errors encountered, bailing.")
             return 1
         self._print_stats()
-        print "Compile successful."
+        print("Compile successful.")
         return 0
 
 def run_compiler():
     """Runs the command-line compiler."""
     
     if len(sys.argv) < 2:
-        print "Usage: c.py <source-file-1> [[source-file-2] ...] [-ast] [-annotate]"
+        print("Usage: c.py <source-file-1> [[source-file-2] ...] [-ast] [-annotate]")
         sys.exit(1)
 
     show_ast = 0
@@ -97,22 +99,22 @@ def run_compiler():
             if param == '-ast':
                 show_ast = 1
             elif param == '-annotate':
-                print "Annotated assembly generation enabled."
+                print("Annotated assembly generation enabled.")
                 show_comments = 1
             else:
-                print "Unknown option: %s" % param
+                print("Unknown option: %s" % param)
                 sys.exit(1)
             files.remove(param)
 
     for file in files:
         source_filename = file
         dest_filename = file[:-2]+'.s'
-        print "Compiling %s -> %s." % (source_filename, dest_filename)
+        print("Compiling %s -> %s." % (source_filename, dest_filename))
         open_files = []
         ast_file = None
         if show_ast:
             ast_filename = file[:-2]+'.ast'
-            print "Outputting AST to %s." % ast_filename
+            print("Outputting AST to %s." % ast_filename)
             ast_file = open(ast_filename, 'w')
             open_files.append(ast_file)
         source = open(source_filename, 'r')
@@ -125,7 +127,7 @@ def run_compiler():
             f.close()
         if retval != 0:
             sys.exit(retval)
-        print
+        print()
 
     sys.exit(retval)
 

@@ -6,6 +6,8 @@
 #  $Id: cparse.py,v 1.2 2004/05/27 16:25:08 varmaa Exp $
 #  ---------------------------------------------------------------
 
+from __future__ import absolute_import
+from __future__ import print_function
 import yacc
 
 from clex import tokens
@@ -32,7 +34,7 @@ class Node:
         """Returns whether the node has an address (i.e., is a valid
         lvalue)."""
         
-        return self.__dict__.has_key("has_addr")
+        return "has_addr" in self.__dict__
 
     def set_has_address(self):
         """Tells the node that has an address (is an lvalue).
@@ -755,9 +757,9 @@ def p_empty(t):
     pass
 
 def p_error(t):
-    print "You've got a syntax error somewhere in your code."
-    print "It could be around line %d." % t.lineno
-    print "Good luck finding it."
+    print("You've got a syntax error somewhere in your code.")
+    print("It could be around line %d." % t.lineno)
+    print("Good luck finding it.")
     raise ParseError()
 
 yacc.yacc(debug=1)
