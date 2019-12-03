@@ -105,9 +105,9 @@ attributes:
                name of the rule without the leading t_
     t.value  = The value of the lexeme.
     t.lineno = The value of the line number where the token was encountered
-    
+
 For example, the t_NUMBER() rule above might be called with the following:
-    
+
     t.type  = 'NUMBER'
     t.value = '42'
     t.lineno = 3
@@ -539,14 +539,14 @@ def lex(module=None, debug=0, optimize=0, lextab="lextab"):
         else:
             print("lex: %s not defined as a function or string" % f)
             error = 1
-
+    import functools
     # Sort the functions by line number
-    fsymbols.sort(
-        lambda x, y: cmp(x.__code__.co_firstlineno, y.__code__.co_firstlineno)
-    )
+    fsymbols.sort(key=functools.cmp_to_key(
+        lambda x, y: min(x.__code__.co_firstlineno, y.__code__.co_firstlineno)
+    ))
 
     # Sort the strings by regular expression length
-    ssymbols.sort(lambda x, y: (len(x[1]) < len(y[1])) - (len(x[1]) > len(y[1])))
+    ssymbols.sort(key=functools.cmp_to_key(lambda x, y: (len(x[1]) < len(y[1])) - (len(x[1]) > len(y[1]))))
 
     # Check for non-empty symbols
     if len(fsymbols) == 0 and len(ssymbols) == 0:
