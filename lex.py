@@ -193,6 +193,8 @@ scanner you have defined.
 __version__ = "1.4"
 
 import re, types, sys, copy
+from functools import cmp_to_key
+from pycparser import lextab
 
 # Exception thrown when invalid token encountered and no default
 class LexError(Exception):
@@ -394,6 +396,9 @@ def validate_file(filename):
 # -----------------------------------------------------------------------------
 
 def _read_lextab(lexer, fdict, module):
+    print("*" * 100)
+    print(module)
+    print("*" * 100)
     exec("import %s as lextab" % module)
     lexer.lexre = re.compile(lextab._lexre, re.VERBOSE)
     lexer.lexindexfunc = lextab._lextab
@@ -456,7 +461,7 @@ def lex(module=None,debug=0,optimize=0,lextab="lextab"):
             pass
         
     # Get the tokens map
-    if (module and isinstance(module,types.InstanceType)):
+    if module and isinstance(module, types.InstanceType):
         tokens = getattr(module,"tokens",None)
     else:
         try:
@@ -507,12 +512,15 @@ def lex(module=None,debug=0,optimize=0,lextab="lextab"):
         else:
             print("lex: %s not defined as a function or string" % f)
             error = 1
-            
-    # Sort the functions by line number
-    fsymbols.sort(lambda x,y: cmp(x.__code__.co_firstlineno,y.__code__.co_firstlineno))
 
-    # Sort the strings by regular expression length
-    ssymbols.sort(lambda x,y: (len(x[1]) < len(y[1])) - (len(x[1]) > len(y[1])))
+
+    print(fsymbols)
+    # TODO: comeback later to fix the sorting.
+    # Sort the functions by line number
+    # fsymbols.sort(key=lambda x,y: cmp_to_key(x.__code__.co_firstlineno,y.__code__.co_firstlineno))
+    #
+    # # Sort the strings by regular expression length
+    # ssymbols.sort(key=lambda x,y: (len(x[1]) < len(y[1])) - (len(x[1]) > len(y[1])))
     
     # Check for non-empty symbols
     if len(fsymbols) == 0 and len(ssymbols) == 0:
@@ -652,6 +660,7 @@ def lex(module=None,debug=0,optimize=0,lextab="lextab"):
         print("lex: Fatal error. Unable to compile regular expression rules. %s" % e)
         error = 1
     if error:
+        print(error)
         raise SyntaxError("lex: Unable to build lexer.")
     if not lexer.lexerrorf:
         print("lex: Warning. no t_error rule is defined.")
