@@ -17,11 +17,12 @@ import cparse, cvisitors, cx86
 
 import sys
 
+
 class Compiler:
     """This object encapsulates the front-end for the compiler and
     serves as a facade interface to the 'meat' of the compiler
     underneath."""
-    
+
     class CompileError(Exception):
         """Exception raised when there's been a compilation error."""
 
@@ -37,7 +38,7 @@ class Compiler:
 
     def _compile_phase(self, visitor):
         """Applies a visitor to the abstract syntax tree."""
-        
+
         visitor.visit(self.ast)
         self.total_errors += visitor.errors
         self.total_warnings += visitor.warnings
@@ -47,19 +48,18 @@ class Compiler:
     def _do_compile(self, outfile, ast_file, show_comments):
         """Compiles the code to the given file object.  Enabling
         show_ast prints out the abstract syntax tree."""
-        
+
         self._parse()
         self._compile_phase(cvisitors.SymtabVisitor())
         self._compile_phase(cvisitors.TypeCheckVisitor())
         self._compile_phase(cvisitors.FlowControlVisitor())
-        self._compile_phase(cx86.CodeGenVisitor(outfile,
-                                                show_comments))
+        self._compile_phase(cx86.CodeGenVisitor(outfile, show_comments))
         if ast_file != None:
             self._compile_phase(cvisitors.ASTPrinterVisitor(ast_file))
 
     def _print_stats(self):
         """Prints the total number of errors/warnings from compilation."""
-        
+
         print(("%d errors, %d warnings." % (self.total_errors, self.total_warnings)))
 
     def compile(self, code, outfile, show_ast, show_comments):
@@ -70,7 +70,7 @@ class Compiler:
             self._do_compile(outfile, show_ast, show_comments)
         except cparse.ParseError:
             print("Errors encountered, bailing.")
-            return 1            
+            return 1
         except Compiler.CompileError:
             self._print_stats()
             print("Errors encountered, bailing.")
@@ -79,9 +79,10 @@ class Compiler:
         print("Compile successful.")
         return 0
 
+
 def run_compiler():
     """Runs the command-line compiler."""
-    
+
     if len(sys.argv) < 2:
         print("Usage: c.py <source-file-1> [[source-file-2] ...] [-ast] [-annotate]")
         sys.exit(1)
@@ -93,10 +94,10 @@ def run_compiler():
     files = sys.argv[1:]
 
     for param in params:
-        if param[0] == '-':
-            if param == '-ast':
+        if param[0] == "-":
+            if param == "-ast":
                 show_ast = 1
-            elif param == '-annotate':
+            elif param == "-annotate":
                 print("Annotated assembly generation enabled.")
                 show_comments = 1
             else:
@@ -106,19 +107,19 @@ def run_compiler():
 
     for file in files:
         source_filename = file
-        dest_filename = file[:-2]+'.s'
+        dest_filename = file[:-2] + ".s"
         print(("Compiling %s -> %s." % (source_filename, dest_filename)))
         open_files = []
         ast_file = None
         if show_ast:
-            ast_filename = file[:-2]+'.ast'
+            ast_filename = file[:-2] + ".ast"
             print(("Outputting AST to %s." % ast_filename))
-            ast_file = open(ast_filename, 'w')
+            ast_file = open(ast_filename, "w")
             open_files.append(ast_file)
-        source = open(source_filename, 'r')
+        source = open(source_filename, "r")
         code = source.read()
         source.close()
-        dest = open(dest_filename, 'w')
+        dest = open(dest_filename, "w")
         open_files.append(dest)
         retval = Compiler().compile(code, dest, ast_file, show_comments)
         for f in open_files:
@@ -129,7 +130,8 @@ def run_compiler():
 
     sys.exit(retval)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     run_compiler()
 
 #  ---------------------------------------------------------------
