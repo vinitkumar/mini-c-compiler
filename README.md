@@ -1,4 +1,4 @@
-Atul's Mini-C Compiler
+[Atul](https://github.com/toolness)'s Mini-C Compiler
 June 2, 2004
 
 This is a compiler for a subset of the C programming language. It was
