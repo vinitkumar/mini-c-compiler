@@ -1,0 +1,94 @@
++ TranslationUnit
+    + Declaration
+      Type-string: int
+      has_return_stmt: 0
+      compile_loc: stuff_count
+      static: 0
+      is_used: 1
+      extern: 0
+      name: stuff_count
+      Type:
+        + BaseType
+          type_str: int
+    + FunctionDefn
+      Type-string: function()->int
+      name: fib
+      compile_loc: fib
+      static: 1
+      is_used: 1
+      extern: 0
+      Type:
+        + FunctionType
+          Parameters::
+            + ParamList
+              has_ellipsis: 0
+          Child::
+            + BaseType
+              type_str: int
+      Body:
+        + CompoundStatement
+          has_return_stmt: 1
+          Statement list:
+            + StatementList
+              has_return_stmt: 1
+                + ReturnStatement
+                  has_return_stmt: 1
+                  Expression:
+                    + Binop
+                      Type-string: int
+                      op: +=
+                      Left operand:
+                        + Id
+                          Type-string: int
+                          name: stuff_count
+                          output_addr: 1
+                          has_addr: 1
+                          lineno: 171
+                      Right operand:
+                        + Const
+                          Type-string: int
+                          value: 1
+                          Type:
+                            + BaseType
+                              type_str: int
+    + FunctionDefn
+      Type-string: function()->int
+      name: increment_stuff_count
+      compile_loc: increment_stuff_count
+      static: 0
+      extern: 0
+      Type:
+        + FunctionType
+          Parameters::
+            + ParamList
+              has_ellipsis: 0
+          Child::
+            + BaseType
+              type_str: int
+      Body:
+        + CompoundStatement
+          has_return_stmt: 1
+          Statement list:
+            + StatementList
+              has_return_stmt: 1
+                + FunctionExpression
+                  Type-string: int
+                  has_return_stmt: 0
+                  Function:
+                    + Id
+                      Type-string: function()->int
+                      name: fib
+                      output_addr: 0
+                      has_addr: 1
+                      lineno: 177
+                  Arguments:
+                    + ArgumentList
+                + ReturnStatement
+                  has_return_stmt: 1
+                  Expression:
+                    + Const
+                      Type-string: int
+                      value: 0
+                      Type:
+                        + BaseType
+                          type_str: int
