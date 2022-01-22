@@ -31,7 +31,10 @@
 #   * doesn't check for variable initialization before use.
 #   * const number ranges aren't being checked.
 
+from __future__ import absolute_import
+from __future__ import print_function
 import cparse
+from six.moves import zip
 
 class Visitor:
     """The base visitor class.  This is an abstract base class."""
@@ -59,13 +62,13 @@ class Visitor:
     def warning(self, str):
         """Output a non-fatal compilation warning."""
         
-        print "warning: %s" % str
+        print("warning: %s" % str)
         self.warnings += 1
 
     def error(self, str):
         """Output a fatal compilation error."""
         
-        print "error: %s" % str
+        print("error: %s" % str)
         self.errors += 1
 
     def has_errors(self):
@@ -105,7 +108,7 @@ class ASTPrinterVisitor(Visitor):
 
         # If the node has a type associated with it,
         # print the string of the type.
-        if node.__dict__.has_key("type"):
+        if "type" in node.__dict__:
             self.p("  Type-string: %s" % node.type.get_string())
 
         # Find all attributes of the node that are ints or
@@ -262,7 +265,7 @@ class Symtab:
         declaration or definition of a function/variable (e.g.,
         Declaration or FunctionDefn)."""
         
-        if self.entries.has_key(name):
+        if name in self.entries:
             if not self.entries[name].extern:
                 raise Symtab.SymbolDefinedError()
             elif self.entries[name].type.get_string() != \
@@ -275,7 +278,7 @@ class Symtab:
         table, recursing upwards through parent symbol tables if it is
         not found in the current one."""
 
-        if self.entries.has_key(name):
+        if name in self.entries:
             return self.entries[name]
         else:
             if self.parent != None:

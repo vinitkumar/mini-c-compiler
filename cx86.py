@@ -6,6 +6,7 @@
 #  $Id: cx86.py,v 1.3 2004/06/02 21:05:23 varmaa Exp $
 #  ---------------------------------------------------------------
 
+from __future__ import absolute_import
 import cparse
 from cvisitors import Visitor
 
@@ -207,7 +208,7 @@ class x86Registers:
         # emit code to copy the register to the memory location.
         if comment_str == None:
             comment_str = "Stack machine: copy register to temp"
-        self.o("  movl %s, %s" % (reg, mem),
+        self.o("  movl {}, {}".format(reg, mem),
                comment_str)
 
         # Modify the element's stack machine position to reflect
@@ -281,7 +282,7 @@ class x86Registers:
         
         from_str = from_type.get_outer_string()
         to_str = to_type.get_outer_string()
-        comment_str = "Implicit cast: %s -> %s" % (from_str, to_str)
+        comment_str = "Implicit cast: {} -> {}".format(from_str, to_str)
         if from_str == to_str:
             return curr_reg
         if from_str == 'char':
@@ -289,7 +290,7 @@ class x86Registers:
                 return curr_reg
         elif from_str == 'int':
             if to_str == 'char':
-                self.o("  movzbl %s, %s" % (self.lo(curr_reg),
+                self.o("  movzbl {}, {}".format(self.lo(curr_reg),
                                             curr_reg),
                        comment_str)
                 return curr_reg
@@ -331,7 +332,7 @@ class x86Registers:
         # current contents of the memory register into another temp
         # variable.
         reg = self._get_free_reg(valid_regs)
-        self.o("  movl %s, %s" % (loc, reg),
+        self.o("  movl {}, {}".format(loc, reg),
                "Stack machine: copy temp to register")
 
         # if our location was a register but not in valid_regs,
@@ -477,7 +478,7 @@ class CodeGenVisitor(Visitor):
         indent = " " * indent_amt
         
         if self.show_comments:
-            self.o("\n%s# %s\n" % (indent, str))
+            self.o("\n{}# {}\n".format(indent, str))
             
     def vNodeList(self, node):
         self._visitList(node.nodes)
@@ -720,7 +721,7 @@ class CodeGenVisitor(Visitor):
         node.expr.accept(self)
         comparer = self.stack.pop()
         self.stack.done()
-        self.o("  testl %s, %s" % (comparer, comparer), "Test the result")        
+        self.o("  testl {}, {}".format(comparer, comparer), "Test the result")        
         self.o("  jz %s" % else_label,
                "If result is zero, jump to else clause")
         self.c("IF statment - THEN clause - begin")
@@ -764,7 +765,7 @@ class CodeGenVisitor(Visitor):
 
         comparer = self.stack.pop()
         self.stack.done()
-        self.o("  testl %s, %s" % (comparer, comparer), "Test the result")
+        self.o("  testl {}, {}".format(comparer, comparer), "Test the result")
         self.o("  jz %s" % done_label,
                "If result is zero, leave while loop")
         self._accept_and_empty_stack(node.stmt)
@@ -791,7 +792,7 @@ class CodeGenVisitor(Visitor):
 
         comparer = self.stack.pop()
         self.stack.done()
-        self.o("  testl %s, %s" % (comparer, comparer), "Test the result")
+        self.o("  testl {}, {}".format(comparer, comparer), "Test the result")
         self.o("  jz %s" % done_label,
                "If result is zero, leave for loop")
         self._accept_and_empty_stack(node.stmt)
@@ -818,7 +819,7 @@ class CodeGenVisitor(Visitor):
         
         label_str = "LC%d" % self.__str_literal_label
         str = str.replace('\n', '\\12')
-        self.__str_literal_str += """%s:\n  .ascii "%s\\0"\n""" % (label_str, str)
+        self.__str_literal_str += """{}:\n  .ascii "{}\\0"\n""".format(label_str, str)
         self.__str_literal_label += 1
         return label_str
 
@@ -832,7 +833,7 @@ class CodeGenVisitor(Visitor):
         if len(comment_label) > COMMENT_CHARS:
             comment_label = "%s..." % comment_label[0:COMMENT_CHARS]
 
-        self.o("  movl $%s, %s" % (label_str,
+        self.o("  movl ${}, {}".format(label_str,
                                    self.stack.push(node.type)),
                "Get addr of string literal '%s'" % comment_label)
 
@@ -845,7 +846,7 @@ class CodeGenVisitor(Visitor):
         # If we're only supposed to push our address on the stack, not
         # our actual value, then do that and exit.
         if node.output_addr:
-            self.o("  leal %s, %s" % (node.symbol.compile_loc,
+            self.o("  leal {}, {}".format(node.symbol.compile_loc,
                                       self.stack.push()),
                    "Get address of %s" % node.symbol.name)
             return
@@ -854,7 +855,7 @@ class CodeGenVisitor(Visitor):
             instr = 'movl'
         elif type_str == 'char':
             instr = 'movzbl'
-        self.o("  %s %s, %s" % (instr, node.symbol.compile_loc,
+        self.o("  {} {}, {}".format(instr, node.symbol.compile_loc,
                                 self.stack.push(node.type)),
                "Get value of %s" % node.symbol.name)
 
@@ -868,7 +869,7 @@ class CodeGenVisitor(Visitor):
         addr_str = "(%s,%s,%d)" % (reg_expr, reg_index, size)
         self.stack.done()
         if node.output_addr:
-            self.o("  leal %s, %s" % (addr_str, reg_to),
+            self.o("  leal {}, {}".format(addr_str, reg_to),
                    "Load addr of pointer array index")
         else:
             type_str = node.type.get_outer_string()            
@@ -876,7 +877,7 @@ class CodeGenVisitor(Visitor):
                 instr = 'movl'
             elif type_str == 'char':
                 instr = 'movzbl'
-            self.o("  %s %s, %s" % (instr, addr_str, reg_to),
+            self.o("  {} {}, {}".format(instr, addr_str, reg_to),
                    "Pointer array index dereference")
 
     def vFunctionExpression(self, node):
@@ -960,7 +961,7 @@ class CodeGenVisitor(Visitor):
         if type_str == 'char':
             right_reg = self.stack.lo(right_reg)
             
-        self.o("  %s %s, (%s)" % (instr, right_reg, left_reg),
+        self.o("  {} {}, ({})".format(instr, right_reg, left_reg),
                "Perform assignment '%s'" % node.op)
 
         # NOTE: Wow, this makes for insanely inefficient code, especially
@@ -970,7 +971,7 @@ class CodeGenVisitor(Visitor):
         elif type_str == 'char':
             instr = 'movzbl'
             
-        self.o("  %s (%s), %s" % (instr, left_reg,
+        self.o("  {} ({}), {}".format(instr, left_reg,
                                   self.stack.push(node.type)),
                "Copy assignment result to register")
         self.stack.done()
@@ -1004,7 +1005,7 @@ class CodeGenVisitor(Visitor):
             r_reg = right_reg
             l_reg = left_reg
             
-        self.o("  %s %s, %s" % (instr, r_reg, l_reg),
+        self.o("  {} {}, {}".format(instr, r_reg, l_reg),
                "Perform '%s'" % node.op)
         self.stack.done()
 
@@ -1025,8 +1026,8 @@ class CodeGenVisitor(Visitor):
         left_reg = self.stack.pop(node.left.coerce_to_type)
         self.stack.done()
 
-        self.o("  cmpl %s, %s" % (right_reg, left_reg),
-               "Compare %s to %s" % (left_reg, right_reg))
+        self.o("  cmpl {}, {}".format(right_reg, left_reg),
+               "Compare {} to {}".format(left_reg, right_reg))
 
         # TODO: this could cause errors, if push() generates
         # mov instructions...  not sure if mov instructions
@@ -1034,10 +1035,10 @@ class CodeGenVisitor(Visitor):
         # since they're not arithmetic operations.
         byte_reg = self.stack.push(cparse.BaseType('char'))
         lo = self.stack.lo(byte_reg)
-        self.o("  %s %s" % (self.binop_instructions[node.op],
+        self.o("  {} {}".format(self.binop_instructions[node.op],
                             lo),
                "Perform '%s'" % node.op)
-        self.o("  movzbl %s, %s" % (lo, byte_reg),
+        self.o("  movzbl {}, {}".format(lo, byte_reg),
                "Zero-extend the boolean result")
 
     def vBinop(self, node):
@@ -1065,7 +1066,7 @@ class CodeGenVisitor(Visitor):
             instr = 'movl'
         elif type_str == 'char':
             instr = 'movzbl'
-        self.o("  %s (%s), %s" % (instr, reg_from, reg_to),
+        self.o("  {} ({}), {}".format(instr, reg_from, reg_to),
                "Pointer dereference")
         self.stack.done()
 
