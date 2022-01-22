@@ -6,10 +6,9 @@
 #  $Id: cparse.py,v 1.2 2004/05/27 16:25:08 varmaa Exp $
 #  ---------------------------------------------------------------
 
-from __future__ import absolute_import
-from __future__ import print_function
-import yacc
+from __future__ import absolute_import, print_function
 
+import yacc
 from clex import tokens
 
 #  ---------------------------------------------------------------

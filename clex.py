@@ -6,10 +6,11 @@
 #  $Id: clex.py,v 1.2 2004/06/02 21:05:45 varmaa Exp $
 #  ---------------------------------------------------------------
 
-from __future__ import absolute_import
-from __future__ import print_function
-import lex
+from __future__ import absolute_import, print_function
+
 import re
+
+import lex
 
 #  ---------------------------------------------------------------
 #  TOKEN LIST

@@ -31,10 +31,11 @@
 #   * doesn't check for variable initialization before use.
 #   * const number ranges aren't being checked.
 
-from __future__ import absolute_import
-from __future__ import print_function
-import cparse
+from __future__ import absolute_import, print_function
+
 from six.moves import zip
+
+import cparse
 
 
 class Visitor:
