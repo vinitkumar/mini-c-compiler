@@ -240,7 +240,7 @@ def t_STRING(t):
     r'"[^\n]*?(?<!\\)"'
     temp_str = t.value.replace(r"\\", "")
     m = re.search(r'\\[^n"]', temp_str)
-    if m != None:
+    if m is not None:
         print(
             "Line %d. Unsupported character escape %s in string literal."
             % (t.lineno, m.group(0))

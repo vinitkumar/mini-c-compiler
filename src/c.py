@@ -57,7 +57,7 @@ class Compiler:
         self._compile_phase(cvisitors.TypeCheckVisitor())
         self._compile_phase(cvisitors.FlowControlVisitor())
         self._compile_phase(cx86.CodeGenVisitor(outfile, show_comments))
-        if ast_file != None:
+        if ast_file is not None:
             self._compile_phase(cvisitors.ASTPrinterVisitor(ast_file))
 
     def _print_stats(self):
