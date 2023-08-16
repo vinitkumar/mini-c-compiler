@@ -252,7 +252,7 @@ class Symtab:
         
         self.entries = {}
         self.parent = parent
-        if self.parent != None:
+        if self.parent is not None:
             self.parent.children.append(self)
         self.children = []
     
@@ -278,7 +278,7 @@ class Symtab:
         if name in self.entries:
             return self.entries[name]
         else:
-            if self.parent != None:
+            if self.parent is not None:
                 return self.parent.get(name)
             else:
                 return None
@@ -314,7 +314,7 @@ class SymtabVisitor(Visitor):
     
     def vId(self, node):
         symbol = self.curr_symtab.get(node.name)
-        if symbol != None:
+        if symbol is not None:
             node.symbol = symbol
             node.symbol.is_used = 1
             node.set_has_address()
@@ -442,7 +442,6 @@ class TypeCheckVisitor(Visitor):
         """Checks the given integral constant to make sure its value
         is within the bounds of the given type."""
         
-        val = var.value
         type_str = type.get_outside_string()
         # TODO: implement this!
         if type_str == 'char':

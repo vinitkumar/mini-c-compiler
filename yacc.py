@@ -297,7 +297,7 @@ class Parser:
                     return getattr(n,"value",None)
                     sys.stderr.write(errorlead, "\n")
 
-            if t == None:
+            if t is None:
                 if debug:
                     sys.stderr.write(errorlead + "\n")
                 # We have some kind of parsing error here.  To handle
@@ -563,7 +563,7 @@ class Production:
         # Precompute list of productions immediately following
         try:
             p.lrafter = Prodnames[p.prod[n+1]]
-        except (IndexError,KeyError) as e:
+        except (IndexError,KeyError):
             p.lrafter = []
         try:
             p.lrbefore = p.prod[n-1]
@@ -1142,7 +1142,6 @@ def lr0_closure(I):
     global _add_count
     
     _add_count += 1
-    prodlist = Productions
     
     # Add everything in I to J        
     J = I[:]
@@ -1540,10 +1539,10 @@ del _lr_action_items
 """)
             
         else:
-            f.write("\n_lr_action = { ");
+            f.write("\n_lr_action = { ")
             for k,v in list(_lr_action.items()):
                 f.write("({!r},{!r}):{!r},".format(k[0],k[1],v))
-            f.write("}\n");
+            f.write("}\n")
 
         if smaller:
             # Factor out names to try and make smaller
@@ -1577,10 +1576,10 @@ for _k, _v in _lr_goto_items.items():
 del _lr_goto_items
 """)
         else:
-            f.write("\n_lr_goto = { ");
+            f.write("\n_lr_goto = { ")
             for k,v in list(_lr_goto.items()):
                 f.write("({!r},{!r}):{!r},".format(k[0],k[1],v))                    
-            f.write("}\n");
+            f.write("}\n")
 
         # Write production table
         f.write("_lr_productions = [\n")
@@ -1799,7 +1798,7 @@ def yacc(method=default_lr, debug=yaccdebug, module=None, tabmodule=tab_module, 
         
             augment_grammar(start)    
             error = verify_productions(cycle_check=check_recursion)
-            otherfunc = [ldict[f] for f in list(ldict.keys())
+            [ldict[f] for f in list(ldict.keys())
                if (type(f) in (types.FunctionType,types.MethodType) and ldict[f].__name__[:2] != 'p_')]
 
             if error:

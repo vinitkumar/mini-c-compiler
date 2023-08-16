@@ -192,7 +192,7 @@ scanner you have defined.
 
 __version__ = "1.4"
 
-import re, types, sys, copy
+import re, types, sys
 
 # Exception thrown when invalid token encountered and no default
 class LexError(Exception):
@@ -555,7 +555,7 @@ def lex(module=None,debug=0,optimize=0,lextab="lextab"):
         if f.__doc__:
             if not optimize:
                 try:
-                    c = re.compile(f.__doc__, re.VERBOSE)
+                    re.compile(f.__doc__, re.VERBOSE)
                 except re.error as e:
                     print("%s:%d: Invalid regular expression for rule '%s'. %s" % (file,line,f.__name__,e))
                     error = 1
@@ -590,7 +590,7 @@ def lex(module=None,debug=0,optimize=0,lextab="lextab"):
                 error = 1
                 continue
             try:
-                c = re.compile(r,re.VERBOSE)
+                re.compile(r,re.VERBOSE)
             except re.error as e:
                 print("lex: Invalid regular expression for rule '{}'. {}".format(name,e))
                 error = 1
@@ -628,7 +628,7 @@ def lex(module=None,debug=0,optimize=0,lextab="lextab"):
             lt = open(lextab+".py","w")
             lt.write("# %s.py.  This file automatically created by PLY. Don't edit.\n" % lextab)
             lt.write("_lexre = %s\n" % repr(regex))
-            lt.write("_lextab = [\n");
+            lt.write("_lextab = [\n")
             for i in range(0,len(lexer.lexindexfunc)):
                 t = lexer.lexindexfunc[i]
                 if t:
@@ -639,7 +639,7 @@ def lex(module=None,debug=0,optimize=0,lextab="lextab"):
                 else:
                     lt.write("  None,\n")
                     
-            lt.write("]\n");
+            lt.write("]\n")
             lt.write("_lextokens = %s\n" % repr(lexer.lextokens))
             lt.write("_lexignore = %s\n" % repr(lexer.lexignore))
             if (lexer.lexerrorf):

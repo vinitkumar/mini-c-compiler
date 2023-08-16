@@ -8,7 +8,6 @@
 
 import yacc
 
-from clex import tokens
 
 #  ---------------------------------------------------------------
 #  ABSTRACT SYNTAX TREE - NODES
@@ -66,7 +65,7 @@ class Node:
         visitor.vNode())."""
         
         visitor_method = getattr(visitor, "v%s" % klass.__name__, None)
-        if visitor_method == None:
+        if visitor_method is None:
             bases = klass.__bases__
             last = None
             for i in bases:
@@ -140,7 +139,7 @@ def _get_calculated(node):
     this function just returns the node unmodified."""
 
     result = node.calculate()
-    if result != None:        
+    if result is not None:        
         result = int(result)
         return Const(result, BaseType('int'))
     else:
@@ -157,7 +156,7 @@ class Negative(Unaryop):
     
     def calculate(self):
         val = self.expr.calculate()
-        if val != None:
+        if val is not None:
             return -val
         return None
 
@@ -186,7 +185,7 @@ class Binop(Node):
     def calculate(self):
         left = self.left.calculate()
         right = self.right.calculate()
-        if left != None and right != None:
+        if left is not None and right is not None:
             return int(eval("%d %s %d" % (left, self.op, right)))
         else:
             return None
@@ -239,7 +238,7 @@ class NodeList(Node):
     
     def __init__(self, node=None):
         self.nodes = []
-        if node != None:
+        if node is not None:
             self.nodes.append(node)
 
     def add(self, node):
@@ -307,7 +306,7 @@ class Declaration(Node):
     variable."""
     
     def __init__(self, name, type=None):
-        if type == None:
+        if type is None:
             type = NullNode()
         self.extern = 0
         self.static = 0
@@ -342,7 +341,7 @@ class Type(Node):
     This is an abstract base class."""
     
     def __init__(self, child=None):
-        if child == None:
+        if child is None:
             child = NullNode()
         self.child = child
 
@@ -394,7 +393,7 @@ class FunctionType(Type):
     
     def __init__(self, params=None, child=None):
         Type.__init__(self, child)
-        if (params == None):
+        if (params is None):
             params = NullNode()
         self.params = params
 

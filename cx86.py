@@ -201,11 +201,11 @@ class x86Registers:
                 reg = i
                 break
             index += 1
-        if reg == None:
+        if reg is None:
             raise Exception("No free registers inside OR outside of stack!")
 
         # emit code to copy the register to the memory location.
-        if comment_str == None:
+        if comment_str is None:
             comment_str = "Stack machine: copy register to temp"
         self.o(f"  movl {reg}, {mem}",
                comment_str)
@@ -224,13 +224,13 @@ class x86Registers:
         # If we have a register free, return it.
         if len(self.regs_free) > 0:
             reg = None
-            if preferred_reg != None and preferred_reg in self.regs_free:
+            if preferred_reg is not None and preferred_reg in self.regs_free:
                 reg = preferred_reg
             else:
                 for r in self.regs_free:
                     if r in valid_regs:
                         reg = r
-            if reg != None:
+            if reg is not None:
                 self.regs_free.remove(reg)
                 # If this register is a callee-save register that
                 # we haven't used before, add it to our list
@@ -266,10 +266,10 @@ class x86Registers:
         If preferred_reg is passed, this function will try its
         best to return preferred_reg, if it's available."""
 
-        if type == None:
+        if type is None:
             type = self.default_type
         self.type_stack.append(type)
-        if valid_regs == None:
+        if valid_regs is None:
             valid_regs = self._get_type_valid_regs(type)
         reg = self._get_free_reg(valid_regs, preferred_reg)
         self.stack.append(reg)
@@ -303,8 +303,8 @@ class x86Registers:
         element as-is."""
 
         prev_type = self.type_stack.pop()
-        if type != None:
-            if valid_regs == None:
+        if type is not None:
+            if valid_regs is None:
                 valid_regs = self._get_type_valid_regs(type)
             reg = self._pop(valid_regs)
             return self._coerce_type(reg, prev_type, type)
@@ -462,7 +462,7 @@ class CodeGenVisitor(Visitor):
         with an optional annotated comment (if comments are
         enabled)."""
 
-        if self.show_comments and comment != None:
+        if self.show_comments and comment is not None:
             comment = "# %s" % comment
             self.curr_str += "%-35s %s\n" % (str, comment)
         else:
