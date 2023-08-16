@@ -6,8 +6,9 @@
 #  $Id: clex.py,v 1.2 2004/06/02 21:05:45 varmaa Exp $
 #  ---------------------------------------------------------------
 
-import lex
 import re
+
+import lex
 
 #  ---------------------------------------------------------------
 #  TOKEN LIST
@@ -21,7 +22,7 @@ tokens = (
     'CHAR',
     'CONST',
     'CONTINUE',
-    'DEFAULT',    
+    'DEFAULT',
     'DO',
     'DOUBLE',
     'ELSE',
@@ -100,7 +101,7 @@ tokens = (
 
     # Complex tokens
     'ID',
-    'FNUMBER',    
+    'FNUMBER',
     'INUMBER',
     'STRING',
     'CHARACTER',
@@ -117,7 +118,7 @@ reserved_words = {
     'char' : 'CHAR',
     'const' : 'CONST',
     'continue' : 'CONTINUE',
-    'default' : 'DEFAULT',    
+    'default' : 'DEFAULT',
     'do' : 'DO',
     'double' : 'DOUBLE',
     'else' : 'ELSE',
@@ -277,7 +278,7 @@ def t_error(t):
 def run_lexer():
     """This is just a debugging function that prints out a list of
     tokens, it's not actually called by the compiler or anything."""
-    
+
     import sys
     file = open(sys.argv[1])
     lines = file.readlines()

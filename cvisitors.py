@@ -6,8 +6,8 @@
 #  $Id: cvisitors.py,v 1.3 2004/05/27 17:51:47 varmaa Exp $
 #
 #  The Visitor is a pattern outlined in "Design Patterns" by
-#  Gamma et al., used here to encapsulate different parts of parsing 
-#  and compilation into separate classes via a mechanism called 
+#  Gamma et al., used here to encapsulate different parts of parsing
+#  and compilation into separate classes via a mechanism called
 #  double dispatching.
 #
 #  In this compiler, the yacc grammar rules in cparse.py just create
@@ -33,6 +33,7 @@
 
 import cparse
 
+
 class Visitor:
     """The base visitor class.  This is an abstract base class."""
 
@@ -43,35 +44,35 @@ class Visitor:
     def _visitList(self, list):
         """Visit a list of nodes.  'list' should be an actual list,
         not a cparse.NodeList object."""
-        
+
         last = None
         for i in list:
             last = i.accept(self)
         return last
-    
+
     def visit(self, node):
         """Visits the given node by telling the node to call the
         visitor's class-specific visitor method for that node's
         class (i.e., double dispatching)."""
-        
+
         return node.accept(self)
 
     def warning(self, str):
         """Output a non-fatal compilation warning."""
-        
+
         print("warning: %s" % str)
         self.warnings += 1
 
     def error(self, str):
         """Output a fatal compilation error."""
-        
+
         print("error: %s" % str)
         self.errors += 1
 
     def has_errors(self):
         """Returns whether the visitor has encountered any
         errors."""
-        
+
         return self.errors > 0
 
 #  ---------------------------------------------------------------
@@ -82,7 +83,7 @@ class ASTPrinterVisitor(Visitor):
     """Simple visitor that outputs a textual representation of
     the abstract syntax tree, for debugging purposes, to an
     output file."""
-    
+
     def __init__(self, ast_file, indent_amt=2):
         self.ast_file = ast_file
         Visitor.__init__(self)
@@ -168,7 +169,7 @@ class ASTPrinterVisitor(Visitor):
     def vCompoundStatement(self, node):
         self.pNodeInfo(node)
         self.pSubnodeInfo(node.declaration_list, "Declaration list")
-        self.pSubnodeInfo(node.statement_list, "Statement list")        
+        self.pSubnodeInfo(node.statement_list, "Statement list")
 
     def vBaseType(self, node):
         self.pNodeInfo(node)
@@ -243,25 +244,25 @@ class Symtab:
         symbol to a tamble where the symbol already exists
         and its type differs from the previously existing
         one."""
-        
+
         pass
 
     def __init__(self, parent=None):
         """Creates an empty symbol table with the given
         parent symbol table."""
-        
+
         self.entries = {}
         self.parent = parent
         if self.parent is not None:
             self.parent.children.append(self)
         self.children = []
-    
+
     def add(self, name, value):
         """Adds a symbol with the given value to the symbol table.
         The value is usually an AST node that represents the
         declaration or definition of a function/variable (e.g.,
         Declaration or FunctionDefn)."""
-        
+
         if name in self.entries:
             if not self.entries[name].extern:
                 raise Symtab.SymbolDefinedError()
@@ -285,7 +286,7 @@ class Symtab:
 
 class SymtabVisitor(Visitor):
     """Visitor that creates and attaches symbol tables to the AST."""
-    
+
     def push_symtab(self, node):
         """Pushes a new symbol table onto the visitor's symbol table
         stack and attaches this symbol table to the given node.  This
@@ -298,7 +299,7 @@ class SymtabVisitor(Visitor):
     def pop_symtab(self):
         """Pops a symbol table off the visitor's symbol table stack.
         This is used whenever a new lexical scope is exited."""
-        
+
         self.curr_symtab = self.curr_symtab.parent
 
     def vNode(self, node):
@@ -311,7 +312,7 @@ class SymtabVisitor(Visitor):
     def vFunctionExpression(self, node):
         node.function.accept(self)
         node.arglist.accept(self)
-    
+
     def vId(self, node):
         symbol = self.curr_symtab.get(node.name)
         if symbol is not None:
@@ -349,7 +350,7 @@ class SymtabVisitor(Visitor):
         self.curr_symtab = self.root_symtab
         self.vNodeList(node)
         node.symtab = self.root_symtab
-        
+
     def vCompoundStatement(self, node):
         self.push_symtab(node)
         node.declaration_list.accept(self)
@@ -360,7 +361,7 @@ class SymtabVisitor(Visitor):
         """Attempts to add a symbol for the given node to the current
         symbol table, catching any exceptions that occur and printing
         errors if necessary."""
-        
+
         try:
             self.curr_symtab.add(node.name, node)
         except Symtab.SymbolDefinedError:
@@ -388,7 +389,7 @@ class SymtabVisitor(Visitor):
         node.expr.accept(self)
         node.then_stmt.accept(self)
         node.else_stmt.accept(self)
-    
+
     def vWhileLoop(self, node):
         node.expr.accept(self)
         node.stmt.accept(self)
@@ -413,7 +414,7 @@ class TypeCheckVisitor(Visitor):
         supposed to be the expression for a conditional
         statement (e.g., the conditional clause of an if/then
         statement or a loop)."""
-        
+
         if expr.type.get_outer_string() not in ['int', 'char']:
             self.error("Conditional expression doesn't evaluate to an int/char/etc.")
 
@@ -425,7 +426,7 @@ class TypeCheckVisitor(Visitor):
         Note that both terminals cannot be constant integrals, or else
         they would have already been reduced to one node by the node's
         calculate() method in the parsing stage."""
-        
+
         if var1.is_const():
             self._coerce_const(var1, var2.type)
         elif var2.is_const():
@@ -434,14 +435,14 @@ class TypeCheckVisitor(Visitor):
     def _coerce_const(self, var, type):
         """If the given typed terminal is a constant, coerces it to
          the given type."""
-        
+
         if var.is_const() and type.get_string() in ['int', 'char']:
             var.type = type
-            
+
     def _check_const_range(self, var, type):
         """Checks the given integral constant to make sure its value
         is within the bounds of the given type."""
-        
+
         type_str = type.get_outside_string()
         # TODO: implement this!
         if type_str == 'char':
@@ -476,7 +477,7 @@ class TypeCheckVisitor(Visitor):
         if not raise_errors:
             return conflict
         if conflict == WARNING:
-            self.warning("{}: Conversion from {} to {} may result in data loss.".format(name_str, from_str, to_str))            
+            self.warning("{}: Conversion from {} to {} may result in data loss.".format(name_str, from_str, to_str))
         elif conflict == ERROR:
             self.error("{}: Cannot convert from {} to {}.".format(name_str, from_str, to_str))
 
@@ -524,7 +525,7 @@ class TypeCheckVisitor(Visitor):
         else:
             # TODO: not sure if this results in the ANSI C
             # specification for binary operand type coercion.
-    
+
             self._coerce_consts(node.left, node.right)
             left_conflicts = self._compare_types("", node.right.type, node.left.type, raise_errors=0)
             right_conflicts = self._compare_types("", node.left.type, node.right.type, raise_errors=0)
@@ -538,7 +539,7 @@ class TypeCheckVisitor(Visitor):
             from_node.coerce_to_type = to_node.type
             to_node.coerce_to_type = to_node.type
             node.type = to_node.type
-            
+
     def vNodeList(self, node):
         self._visitList(node.nodes)
 
@@ -619,7 +620,7 @@ class FlowControlVisitor(Visitor):
     that functions return properly through all branches, that
     break/continue statements are only present within loops, and so
     forth."""
-    
+
     def vNode(self, node):
         node.has_return_stmt = 0
 
@@ -634,7 +635,7 @@ class FlowControlVisitor(Visitor):
 
     def vTranslationUnit(self, node):
         self._visitList(node.nodes)
-        
+
     def vWhileLoop(self, node):
         old_in_loop = self.in_loop
         self.in_loop = 1
@@ -646,15 +647,15 @@ class FlowControlVisitor(Visitor):
         self.vWhileLoop(node)
 
     def vBreakStatement(self, node):
-        node.has_return_stmt = 0        
+        node.has_return_stmt = 0
         if not self.in_loop:
             self.error("Break statement outside of loop.")
 
     def vContinueStatement(self, node):
-        node.has_return_stmt = 0        
+        node.has_return_stmt = 0
         if not self.in_loop:
             self.error("Continue statement outside of loop.")
-            
+
     def vIfStatement(self, node):
         node.then_stmt.accept(self)
         node.else_stmt.accept(self)
@@ -662,7 +663,7 @@ class FlowControlVisitor(Visitor):
             node.has_return_stmt = 1
         else:
             node.has_return_stmt = 0
-            
+
     def vFunctionDefn(self, node):
         self.curr_func = node
         self.in_loop = 0

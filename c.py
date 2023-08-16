@@ -11,17 +11,19 @@
 #  compiler proper.
 #  ---------------------------------------------------------------
 
+import sys
+
+import cparse
+import cvisitors
+import cx86
 import yacc
 
-import cparse, cvisitors, cx86
-
-import sys
 
 class Compiler:
     """This object encapsulates the front-end for the compiler and
     serves as a facade interface to the 'meat' of the compiler
     underneath."""
-    
+
     class CompileError(Exception):
         """Exception raised when there's been a compilation error."""
 
@@ -37,7 +39,7 @@ class Compiler:
 
     def _compile_phase(self, visitor):
         """Applies a visitor to the abstract syntax tree."""
-        
+
         visitor.visit(self.ast)
         self.total_errors += visitor.errors
         self.total_warnings += visitor.warnings
@@ -47,7 +49,7 @@ class Compiler:
     def _do_compile(self, outfile, ast_file, show_comments):
         """Compiles the code to the given file object.  Enabling
         show_ast prints out the abstract syntax tree."""
-        
+
         self._parse()
         self._compile_phase(cvisitors.SymtabVisitor())
         self._compile_phase(cvisitors.TypeCheckVisitor())
@@ -59,7 +61,7 @@ class Compiler:
 
     def _print_stats(self):
         """Prints the total number of errors/warnings from compilation."""
-        
+
         print("%d errors, %d warnings." % (self.total_errors, self.total_warnings))
 
     def compile(self, code, outfile, show_ast, show_comments):
@@ -70,7 +72,7 @@ class Compiler:
             self._do_compile(outfile, show_ast, show_comments)
         except cparse.ParseError:
             print("Errors encountered, bailing.")
-            return 1            
+            return 1
         except Compiler.CompileError:
             self._print_stats()
             print("Errors encountered, bailing.")
@@ -81,7 +83,7 @@ class Compiler:
 
 def run_compiler():
     """Runs the command-line compiler."""
-    
+
     if len(sys.argv) < 2:
         print("Usage: c.py <source-file-1> [[source-file-2] ...] [-ast] [-annotate]")
         sys.exit(1)
