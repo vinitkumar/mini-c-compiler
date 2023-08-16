@@ -84,7 +84,7 @@ class x86Registers:
     used by the stack machine until a call to done() is made.  The
     done() method simply moves the registers in the 'almost free' list
     over to the 'free' list."""
-    
+
     def __init__(self, parent, base_fp):
         # A list of all registers on the machine.
         self.all_regs = ['%ebx','%esi','%edi','%eax','%ecx','%edx']
@@ -139,10 +139,10 @@ class x86Registers:
         # The default type of an element that is pushed onto
         # the stack machine without a 'type' object passed.
         self.default_type = cparse.BaseType('int')
-        
+
     def o(self, str, comment=None):
         """Wrapper for the parent CodeGenVisitor's o() method."""
-        
+
         self.parent.o(str, comment)
 
     def save_caller_saves(self):
@@ -156,7 +156,7 @@ class x86Registers:
         this particular stack machine it's much easier to just move
         the contents of the caller-save registers, if they are
         currently being used, into temporary variables."""
-        
+
         for reg in self.caller_save_regs:
             if reg not in self.regs_free:
                 self._copy_reg_to_temp([reg],
@@ -166,7 +166,7 @@ class x86Registers:
     def save_callee_saves(self):
         """Emits code that pushes the callee-save registers used by
         the stack machine onto the process' stack."""
-        
+
         for reg in self.callee_save_regs_used:
             self.o("  pushl %s" % reg,
                    "Save callee-save register")
@@ -174,7 +174,7 @@ class x86Registers:
     def load_callee_saves(self):
         """Emits code that pops the callee-save registers used by
         the stack machine off the process' stack."""
-        
+
         for reg in self.callee_save_regs_used:
             self.o("  popl %s" % reg,
                    "Restore callee-save register")
@@ -183,16 +183,16 @@ class x86Registers:
         """Copy the least recently used register on the stack into a
         temporary variable.  The register must be in the valid_regs
         list."""
-        
+
         # if no free temp variables exist,
         # create a new one.
         if len(self.mem_free) == 0:
             self.mem_free.append("%d(%%ebp)" % self.next_temp)
-            self.next_temp -= WORD_SIZE        
+            self.next_temp -= WORD_SIZE
 
         # get an unused temp var
         mem = self.mem_free.pop()
-        
+
         # find the least recently used register on the stack
         reg = None
         index = 0
@@ -207,7 +207,7 @@ class x86Registers:
         # emit code to copy the register to the memory location.
         if comment_str == None:
             comment_str = "Stack machine: copy register to temp"
-        self.o("  movl %s, %s" % (reg, mem),
+        self.o(f"  movl {reg}, {mem}",
                comment_str)
 
         # Modify the element's stack machine position to reflect
@@ -247,7 +247,7 @@ class x86Registers:
         placed in %eax/%ebx/%ecx/%edx because these are the only
         registers with low-order byte sub-registers
         (%al/%bl/%cl/%dl)."""
-        
+
         type_str = type.get_outer_string()
         if type_str == 'char':
             return self.byte_compat_regs
@@ -278,10 +278,10 @@ class x86Registers:
     def _coerce_type(self, curr_reg, from_type, to_type):
         """Attempts to coerce the element in the current register
         from the given type to the given type."""
-        
+
         from_str = from_type.get_outer_string()
         to_str = to_type.get_outer_string()
-        comment_str = "Implicit cast: %s -> %s" % (from_str, to_str)
+        comment_str = f"Implicit cast: {from_str} -> {to_str}"
         if from_str == to_str:
             return curr_reg
         if from_str == 'char':
@@ -289,7 +289,7 @@ class x86Registers:
                 return curr_reg
         elif from_str == 'int':
             if to_str == 'char':
-                self.o("  movzbl %s, %s" % (self.lo(curr_reg),
+                self.o("  movzbl {}, {}".format(self.lo(curr_reg),
                                             curr_reg),
                        comment_str)
                 return curr_reg
@@ -301,7 +301,7 @@ class x86Registers:
 
         If no type is specified, pop() returns the value of the
         element as-is."""
-        
+
         prev_type = self.type_stack.pop()
         if type != None:
             if valid_regs == None:
@@ -316,29 +316,29 @@ class x86Registers:
         that is also in valid_regs and returns the register name.  If
         no registers are free, the least recently used one is first
         copied into a temporary variable and then used."""
-        
+
         loc = self.stack.pop()
-        
+
         # If the top of the stack is a register, just return the
         # name of the register and add the register to our free
         # register list.
         if loc in valid_regs:
             self.regs_almost_free.append(loc)
             return loc
-        
+
         # Otherwise, copy the temp variable at the top of the stack
         # into a free register, possibly requiring us to spill the
         # current contents of the memory register into another temp
         # variable.
         reg = self._get_free_reg(valid_regs)
-        self.o("  movl %s, %s" % (loc, reg),
+        self.o(f"  movl {loc}, {reg}",
                "Stack machine: copy temp to register")
 
         # if our location was a register but not in valid_regs,
         # make the register free for use.
         if loc in self.all_regs:
             self.regs_free.append(loc)
-            
+
         self.regs_almost_free.append(reg)
         return reg
 
@@ -346,18 +346,18 @@ class x86Registers:
         """Returns the top element of the stack, but doesn't pop
         it.  Note that this is not guaranteed to be a register; it
         could be a memory location!"""
-        
+
         return self.stack[-1]
 
     def is_empty(self):
         """Returns whether the stack machine is empty."""
-        
+
         return len(self.stack) == 0
 
     def done(self):
         """Frees all registers that are marked as being in
         intermediate use (i.e., have been pop()'d)."""
-        
+
         self.regs_free.extend(self.regs_almost_free)
         self.regs_almost_free = []
 
@@ -365,7 +365,7 @@ class x86Registers:
         """Returns the maximum point in the process' stack, relative
         to the current function's frame pointer, that the stack
         machine is using for temporary variables."""
-        
+
         return self.next_temp + WORD_SIZE
 
     def lo(self, reg):
@@ -374,7 +374,7 @@ class x86Registers:
         or %edx), then an exception is raised.
 
         Example: stack.lo('%eax') == '%al'."""
-        
+
         if reg[0] == '$':
             return reg
         if reg not in self.byte_compat_regs:
@@ -393,12 +393,12 @@ class x86Registers:
 class CodeGenVisitor(Visitor):
     """Visitor that generates x86 assembly code for the abstract
     syntax tree."""
-    
+
     def __init__(self, file, show_comments=0):
         """Constructor.  'file' is the file object to output the
         resulting code to.  If 'show_comments' is true, then annotated
         comments are produced for the generated assembly code."""
-        
+
         Visitor.__init__(self)
 
         # The current label number we're on, for generating
@@ -449,10 +449,10 @@ class CodeGenVisitor(Visitor):
             self.symbol_prepend = "_"
         else:
             self.symbol_prepend = ""
-            
+
     def new_label(self):
         """Generate a new jump label and return it."""
-        
+
         label = ".L%d" % self.__label
         self.__label += 1
         return label
@@ -461,7 +461,7 @@ class CodeGenVisitor(Visitor):
         """Output a line of assembly code to the output file,
         with an optional annotated comment (if comments are
         enabled)."""
-        
+
         if self.show_comments and comment != None:
             comment = "# %s" % comment
             self.curr_str += "%-35s %s\n" % (str, comment)
@@ -475,10 +475,10 @@ class CodeGenVisitor(Visitor):
         comments are enabled."""
 
         indent = " " * indent_amt
-        
+
         if self.show_comments:
-            self.o("\n%s# %s\n" % (indent, str))
-            
+            self.o(f"\n{indent}# {str}\n")
+
     def vNodeList(self, node):
         self._visitList(node.nodes)
 
@@ -488,7 +488,7 @@ class CodeGenVisitor(Visitor):
         value (for instance, the line 'a = b + 1;') and its
         return value has been pushed onto the stack but there's
         nothing to pop it off."""
-        
+
         # if the statement was also an expression, then its return
         # value is still on the stack, so empty it (throw away
         # the return value).
@@ -501,7 +501,7 @@ class CodeGenVisitor(Visitor):
     def _accept_and_empty_stack(self, node):
         """Visit the node and then empty the stack machine of the
         node's return value, if one exists."""
-        
+
         node.accept(self)
         self._empty_stack(node)
 
@@ -512,7 +512,7 @@ class CodeGenVisitor(Visitor):
     def _generate_global_variable_definitions(self, node):
         """Generate and return a list of global variable
         definitions."""
-        
+
         globals_str = ".global_vars:\n"
         for symbol in node.symtab.entries.values():
             symbol.compile_loc = self.symbol_prepend + symbol.name
@@ -521,10 +521,10 @@ class CodeGenVisitor(Visitor):
                 (symbol.compile_loc, \
                  self._calc_var_size(symbol.type)*WEIRD_MULTIPLIER)
         return globals_str
-    
+
     def vTranslationUnit(self, node):
         """Outputs the entire assembly source file."""
-        
+
         self.curr_str = ""
         self.o("# Generated by c.py")
         self.o("# Atul Varma (Spring 2004)\n")
@@ -534,7 +534,7 @@ class CodeGenVisitor(Visitor):
 
         # Generate the main code.
         self._visitList(node.nodes)
-        
+
         # Append global variable definitions.
         self.o(globals_str)
 
@@ -547,7 +547,7 @@ class CodeGenVisitor(Visitor):
     def _calc_var_size(self, type):
         """Calculate and return the size of the given type, in
         bytes."""
-        
+
         type_str = type.get_outer_string()
         if type_str == "int":
             return INT_SIZE
@@ -561,21 +561,21 @@ class CodeGenVisitor(Visitor):
     def _calc_var_align(self, type):
         """Calculate and return the alignment of the given type,
         in bytes."""
-        
+
         return self._calc_var_size(type)
 
     def _calc_function_var_addrs(self, symtab, last_fp_loc):
         """Calculate the addresses of all local variables in the
         function and attach them to their respective symbols in
         the function's symbol table(s)."""
-        
+
         self._calc_function_arg_addrs(symtab)
         return self._calc_local_var_addrs(symtab.children[0], last_fp_loc)
 
     def _calc_function_arg_addrs(self, symtab):
         """Calculate the addresses of all the arguments passed to
         the function."""
-        
+
         for symbol in symtab.entries.values():
             symbol.compile_loc = "%d(%%ebp)" % (WORD_SIZE*2+(symbol.param_num*WORD_SIZE))
             if not symbol.is_used:
@@ -604,13 +604,13 @@ class CodeGenVisitor(Visitor):
         Here 'i' and 'j' will actually occupy the same place in
         memory because it is impossible for both of them to
         exist in memory at the same time."""
-          
+
         for symbol in symtab.entries.values():
             if symbol.extern:
                 symbol.compile_loc = self.symbol_prepend + symbol.name
                 continue
             last_fp_loc -= self._calc_var_size(symbol.type)
-            
+
             # adjust location for alignment
             align = self._calc_var_align(symbol.type)
             bytes_overboard = (-last_fp_loc) % align
@@ -641,10 +641,10 @@ class CodeGenVisitor(Visitor):
 
         extra = "-" * (width-1-len(str))
         return str + " " + extra
-    
+
     def vFunctionDefn(self, node):
         """Output the assembly code for a function."""
-        
+
         self.break_labels = []
         self.continue_labels = []
         self.curr_func_end_label = self.new_label() + "_function_end"
@@ -672,12 +672,12 @@ class CodeGenVisitor(Visitor):
         # perform a little hack so that we can generate the
         # code for the function into a separate string, and then
         # insert it into our code later on.
-        
+
         old_str = self.curr_str
         self.curr_str = ""
 
         node.body.accept(self)
-        
+
         function_str = self.curr_str
         self.curr_str = old_str
 
@@ -693,7 +693,7 @@ class CodeGenVisitor(Visitor):
 
         # Add the previously-generated assembly code for the function.
         self.curr_str += function_str
-        
+
         self.o("%s:" % self.curr_func_end_label)
 
         # Restore any callee-save registers that may have been used.
@@ -704,7 +704,7 @@ class CodeGenVisitor(Visitor):
 
         line = self._fill_line("END FUNCTION: %s()" % node.name)
         self.c(line, 0)
-        
+
     def vCompoundStatement(self, node):
         node.statement_list.accept(self)
 
@@ -716,16 +716,16 @@ class CodeGenVisitor(Visitor):
             else_label = done_label
 
         self.c("IF statment - begin")
-        
+
         node.expr.accept(self)
         comparer = self.stack.pop()
         self.stack.done()
-        self.o("  testl %s, %s" % (comparer, comparer), "Test the result")        
+        self.o(f"  testl {comparer}, {comparer}", "Test the result")
         self.o("  jz %s" % else_label,
                "If result is zero, jump to else clause")
         self.c("IF statment - THEN clause - begin")
         self._accept_and_empty_stack(node.then_stmt)
-        self.c("IF statment - THEN clause - end")        
+        self.c("IF statment - THEN clause - end")
         self.o("  jmp %s" % done_label)
         if not node.else_stmt.is_null():
             self.c("IF statment - ELSE clause - begin")
@@ -735,18 +735,18 @@ class CodeGenVisitor(Visitor):
         self.o("%s:" % done_label)
 
         self.c("IF statment - end")
-        
+
     def _push_loop_labels(self, break_label, continue_label):
         """Pushes new values of labels to jump to for 'break' and
         'continue' statements."""
-        
+
         self.break_labels.append(break_label)
         self.continue_labels.append(continue_label)
-        
+
     def _pop_loop_labels(self):
         """Restores old values of labels to jump to for 'break' and
         'continue' statements."""
-        
+
         self.break_labels.pop()
         self.continue_labels.pop()
 
@@ -758,13 +758,13 @@ class CodeGenVisitor(Visitor):
                                continue_label=test_label)
 
         self.c("WHILE loop - begin")
-        
+
         self.o("%s:" % test_label)
         node.expr.accept(self)
 
         comparer = self.stack.pop()
         self.stack.done()
-        self.o("  testl %s, %s" % (comparer, comparer), "Test the result")
+        self.o(f"  testl {comparer}, {comparer}", "Test the result")
         self.o("  jz %s" % done_label,
                "If result is zero, leave while loop")
         self._accept_and_empty_stack(node.stmt)
@@ -772,7 +772,7 @@ class CodeGenVisitor(Visitor):
         self.o("%s:" % done_label)
 
         self.c("WHILE loop - end")
-        
+
         self._pop_loop_labels()
 
     def vForLoop(self, node):
@@ -783,15 +783,15 @@ class CodeGenVisitor(Visitor):
                                continue_label=test_label)
 
         self.c("FOR loop - begin")
-        
+
         self._accept_and_empty_stack(node.begin_stmt)
-        
+
         self.o("%s:" % test_label)
         node.expr.accept(self)
 
         comparer = self.stack.pop()
         self.stack.done()
-        self.o("  testl %s, %s" % (comparer, comparer), "Test the result")
+        self.o(f"  testl {comparer}, {comparer}", "Test the result")
         self.o("  jz %s" % done_label,
                "If result is zero, leave for loop")
         self._accept_and_empty_stack(node.stmt)
@@ -800,7 +800,7 @@ class CodeGenVisitor(Visitor):
         self.o("%s:" % done_label)
 
         self.c("FOR loop - end")
-        
+
         self._pop_loop_labels()
 
     def vBreakStatement(self, node):
@@ -815,10 +815,10 @@ class CodeGenVisitor(Visitor):
         """Create a new string literal label for the given string,
         generate (but do not yet emit) the assembly for it, and return
         the name of the new label."""
-        
+
         label_str = "LC%d" % self.__str_literal_label
         str = str.replace('\n', '\\12')
-        self.__str_literal_str += """%s:\n  .ascii "%s\\0"\n""" % (label_str, str)
+        self.__str_literal_str += f"""{label_str}:\n  .ascii "{str}\\0"\n"""
         self.__str_literal_label += 1
         return label_str
 
@@ -832,7 +832,7 @@ class CodeGenVisitor(Visitor):
         if len(comment_label) > COMMENT_CHARS:
             comment_label = "%s..." % comment_label[0:COMMENT_CHARS]
 
-        self.o("  movl $%s, %s" % (label_str,
+        self.o("  movl ${}, {}".format(label_str,
                                    self.stack.push(node.type)),
                "Get addr of string literal '%s'" % comment_label)
 
@@ -845,7 +845,7 @@ class CodeGenVisitor(Visitor):
         # If we're only supposed to push our address on the stack, not
         # our actual value, then do that and exit.
         if node.output_addr:
-            self.o("  leal %s, %s" % (node.symbol.compile_loc,
+            self.o("  leal {}, {}".format(node.symbol.compile_loc,
                                       self.stack.push()),
                    "Get address of %s" % node.symbol.name)
             return
@@ -854,7 +854,7 @@ class CodeGenVisitor(Visitor):
             instr = 'movl'
         elif type_str == 'char':
             instr = 'movzbl'
-        self.o("  %s %s, %s" % (instr, node.symbol.compile_loc,
+        self.o("  {} {}, {}".format(instr, node.symbol.compile_loc,
                                 self.stack.push(node.type)),
                "Get value of %s" % node.symbol.name)
 
@@ -868,15 +868,15 @@ class CodeGenVisitor(Visitor):
         addr_str = "(%s,%s,%d)" % (reg_expr, reg_index, size)
         self.stack.done()
         if node.output_addr:
-            self.o("  leal %s, %s" % (addr_str, reg_to),
+            self.o(f"  leal {addr_str}, {reg_to}",
                    "Load addr of pointer array index")
         else:
-            type_str = node.type.get_outer_string()            
+            type_str = node.type.get_outer_string()
             if type_str in ['int', 'pointer']:
                 instr = 'movl'
             elif type_str == 'char':
                 instr = 'movzbl'
-            self.o("  %s %s, %s" % (instr, addr_str, reg_to),
+            self.o(f"  {instr} {addr_str}, {reg_to}",
                    "Pointer array index dereference")
 
     def vFunctionExpression(self, node):
@@ -884,7 +884,7 @@ class CodeGenVisitor(Visitor):
 
         self.c("FUNCTION CALL to %s() - begin" %
                node.function.symbol.name)
-        
+
         # If we're using any caller-save registers, free them up.
         self.stack.save_caller_saves()
 
@@ -924,7 +924,7 @@ class CodeGenVisitor(Visitor):
 
         self.c("FUNCTION CALL to %s() - end" %
         node.function.symbol.name)
-        
+
     def vReturnStatement(self, node):
         return_reg = self._accept_and_pop(node.expr)
         self.o("  movl %s, %%eax" % return_reg, "Set return value")
@@ -949,18 +949,18 @@ class CodeGenVisitor(Visitor):
     def _binop_assign(self, node):
         """Performs an assignment operation (=, +=, etc) on the given
         Binop node."""
-        
+
         node.left.accept(self)
         right_reg = self._accept_and_pop(node.right)
         left_reg = self.stack.pop()
         instr = self.binop_instructions[node.op[0]]
         instr += self._type_suffix(node.type)
-        
+
         type_str = node.type.get_outer_string()
         if type_str == 'char':
             right_reg = self.stack.lo(right_reg)
-            
-        self.o("  %s %s, (%s)" % (instr, right_reg, left_reg),
+
+        self.o(f"  {instr} {right_reg}, ({left_reg})",
                "Perform assignment '%s'" % node.op)
 
         # NOTE: Wow, this makes for insanely inefficient code, especially
@@ -969,8 +969,8 @@ class CodeGenVisitor(Visitor):
             instr = 'movl'
         elif type_str == 'char':
             instr = 'movzbl'
-            
-        self.o("  %s (%s), %s" % (instr, left_reg,
+
+        self.o("  {} ({}), {}".format(instr, left_reg,
                                   self.stack.push(node.type)),
                "Copy assignment result to register")
         self.stack.done()
@@ -978,7 +978,7 @@ class CodeGenVisitor(Visitor):
     def _type_suffix(self, type):
         """Returns the assembly instruction suffix for the given type;
         'l' for 32-bit types, 'b' for 8-bit types, etc..."""
-        
+
         type_str = type.get_outer_string()
         if type_str in ['int', 'pointer']:
             return 'l'
@@ -988,7 +988,7 @@ class CodeGenVisitor(Visitor):
     def _binop_arith(self, node):
         """Performs an arithmetic operation (+, -, etc) on the given
         Binop node."""
-        
+
         node.left.accept(self)
         right_reg = self._accept_and_pop(node.right)
         left_reg = self.stack.pop(node.left.coerce_to_type)
@@ -1003,8 +1003,8 @@ class CodeGenVisitor(Visitor):
         else:
             r_reg = right_reg
             l_reg = left_reg
-            
-        self.o("  %s %s, %s" % (instr, r_reg, l_reg),
+
+        self.o(f"  {instr} {r_reg}, {l_reg}",
                "Perform '%s'" % node.op)
         self.stack.done()
 
@@ -1019,14 +1019,14 @@ class CodeGenVisitor(Visitor):
     def _binop_compare(self, node):
         """Performs a comparison operation (>, ==, etc) on the given
         Binop node."""
-        
+
         node.left.accept(self)
         right_reg = self._accept_and_pop(node.right)
         left_reg = self.stack.pop(node.left.coerce_to_type)
         self.stack.done()
 
-        self.o("  cmpl %s, %s" % (right_reg, left_reg),
-               "Compare %s to %s" % (left_reg, right_reg))
+        self.o(f"  cmpl {right_reg}, {left_reg}",
+               f"Compare {left_reg} to {right_reg}")
 
         # TODO: this could cause errors, if push() generates
         # mov instructions...  not sure if mov instructions
@@ -1034,10 +1034,10 @@ class CodeGenVisitor(Visitor):
         # since they're not arithmetic operations.
         byte_reg = self.stack.push(cparse.BaseType('char'))
         lo = self.stack.lo(byte_reg)
-        self.o("  %s %s" % (self.binop_instructions[node.op],
+        self.o("  {} {}".format(self.binop_instructions[node.op],
                             lo),
                "Perform '%s'" % node.op)
-        self.o("  movzbl %s, %s" % (lo, byte_reg),
+        self.o(f"  movzbl {lo}, {byte_reg}",
                "Zero-extend the boolean result")
 
     def vBinop(self, node):
@@ -1065,7 +1065,7 @@ class CodeGenVisitor(Visitor):
             instr = 'movl'
         elif type_str == 'char':
             instr = 'movzbl'
-        self.o("  %s (%s), %s" % (instr, reg_from, reg_to),
+        self.o(f"  {instr} ({reg_from}), {reg_to}",
                "Pointer dereference")
         self.stack.done()
 
