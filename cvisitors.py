@@ -59,13 +59,13 @@ class Visitor:
     def warning(self, str):
         """Output a non-fatal compilation warning."""
         
-        print "warning: %s" % str
+        print("warning: %s" % str)
         self.warnings += 1
 
     def error(self, str):
         """Output a fatal compilation error."""
         
-        print "error: %s" % str
+        print("error: %s" % str)
         self.errors += 1
 
     def has_errors(self):
@@ -105,19 +105,19 @@ class ASTPrinterVisitor(Visitor):
 
         # If the node has a type associated with it,
         # print the string of the type.
-        if node.__dict__.has_key("type"):
+        if "type" in node.__dict__:
             self.p("  Type-string: %s" % node.type.get_string())
 
         # Find all attributes of the node that are ints or
         # strings and aren't 'private' (i.e., don't begin with
         # '_'), and print their values.
-        for key in node.__dict__.keys():
+        for key in list(node.__dict__.keys()):
             if key[0] == '_':
                 continue
             val = node.__dict__[key]
             if (isinstance(val, str) or
                 isinstance(val, int)):
-                self.p("  %s: %s" % (key, str(val)))
+                self.p("  {}: {}".format(key, str(val)))
 
     def pSubnodeInfo(self, subnode, label):
         if not subnode.is_null():
@@ -262,7 +262,7 @@ class Symtab:
         declaration or definition of a function/variable (e.g.,
         Declaration or FunctionDefn)."""
         
-        if self.entries.has_key(name):
+        if name in self.entries:
             if not self.entries[name].extern:
                 raise Symtab.SymbolDefinedError()
             elif self.entries[name].type.get_string() != \
@@ -275,7 +275,7 @@ class Symtab:
         table, recursing upwards through parent symbol tables if it is
         not found in the current one."""
 
-        if self.entries.has_key(name):
+        if name in self.entries:
             return self.entries[name]
         else:
             if self.parent != None:
@@ -477,9 +477,9 @@ class TypeCheckVisitor(Visitor):
         if not raise_errors:
             return conflict
         if conflict == WARNING:
-            self.warning("%s: Conversion from %s to %s may result in data loss." % (name_str, from_str, to_str))            
+            self.warning("{}: Conversion from {} to {} may result in data loss.".format(name_str, from_str, to_str))            
         elif conflict == ERROR:
-            self.error("%s: Cannot convert from %s to %s." % (name_str, from_str, to_str))
+            self.error("{}: Cannot convert from {} to {}.".format(name_str, from_str, to_str))
 
     def vNode(self, node):
         pass

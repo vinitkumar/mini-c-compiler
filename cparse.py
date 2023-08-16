@@ -32,7 +32,7 @@ class Node:
         """Returns whether the node has an address (i.e., is a valid
         lvalue)."""
         
-        return self.__dict__.has_key("has_addr")
+        return "has_addr" in self.__dict__
 
     def set_has_address(self):
         """Tells the node that has an address (is an lvalue).
@@ -402,7 +402,7 @@ class FunctionType(Type):
         param_str = ""
         for param in self.params.nodes:
             param_str += "," + param.type.get_string()
-        return "function(%s)->%s" % (param_str[1:], self.child.get_string())
+        return "function({})->{}".format(param_str[1:], self.child.get_string())
 
     def get_outer_string(self):
         return 'function'
@@ -755,9 +755,9 @@ def p_empty(t):
     pass
 
 def p_error(t):
-    print "You've got a syntax error somewhere in your code."
-    print "It could be around line %d." % t.lineno
-    print "Good luck finding it."
+    print("You've got a syntax error somewhere in your code.")
+    print("It could be around line %d." % t.lineno)
+    print("Good luck finding it.")
     raise ParseError()
 
 yacc.yacc(debug=1)

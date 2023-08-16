@@ -514,7 +514,7 @@ class CodeGenVisitor(Visitor):
         definitions."""
 
         globals_str = ".global_vars:\n"
-        for symbol in node.symtab.entries.values():
+        for symbol in list(node.symtab.entries.values()):
             symbol.compile_loc = self.symbol_prepend + symbol.name
             if not symbol.type.is_function() and not symbol.extern:
                 globals_str += "  .comm %s,%d\n" % \
@@ -576,7 +576,7 @@ class CodeGenVisitor(Visitor):
         """Calculate the addresses of all the arguments passed to
         the function."""
 
-        for symbol in symtab.entries.values():
+        for symbol in list(symtab.entries.values()):
             symbol.compile_loc = "%d(%%ebp)" % (WORD_SIZE*2+(symbol.param_num*WORD_SIZE))
             if not symbol.is_used:
                 self.warning("function argument '%s' is never used." % symbol.name)
@@ -605,7 +605,7 @@ class CodeGenVisitor(Visitor):
         memory because it is impossible for both of them to
         exist in memory at the same time."""
 
-        for symbol in symtab.entries.values():
+        for symbol in list(symtab.entries.values()):
             if symbol.extern:
                 symbol.compile_loc = self.symbol_prepend + symbol.name
                 continue
